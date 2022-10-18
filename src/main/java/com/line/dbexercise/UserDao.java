@@ -5,7 +5,7 @@ import com.line.dbexercise.domain.User;
 import java.sql.*;
 import java.util.Map;
 
-public class UserDao {
+public class UserDao   {
     public void add() throws SQLException, ClassNotFoundException {
         Map<String, String> env = System.getenv();
         String dbHost = env.get("Db_HOST");
