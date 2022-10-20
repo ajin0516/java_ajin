@@ -4,9 +4,9 @@ import com.line.domain.User;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
+@Configuration // spring이 관리할거야
 public class UserDaoFactory {
-
+    // 나도 관리해줘!
     @Bean
     public UserDao awsUserDao(){  // 날개 5개 선풍날개
         AWSConnectionMaker awsConnectionMaker = new AWSConnectionMaker();
