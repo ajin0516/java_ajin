@@ -2,6 +2,7 @@ package com.line.dao;
 
 import com.line.domain.User;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.sql.*;
 import java.util.Map;
@@ -17,29 +18,66 @@ public class UserDao {
         this.connectionMaker = connectionMaker;
     }
     // deleteAll() 실행 후 테이블에 남은 게 있는지 확인해야 함
-    public void deleteAll() throws SQLException, ClassNotFoundException {
-        Connection conn = connectionMaker.makeConnection();
-        PreparedStatement ps = conn.prepareStatement("DELETE FROM users");
-        ps.executeUpdate();
+    public void deleteAll() throws ClassNotFoundException {
+        Connection conn = null;
+        PreparedStatement ps = null;
 
-        ps.close();
-        conn.close();
+        try {
+            conn = connectionMaker.makeConnection();
+            ps = conn.prepareStatement("DELETE FROM users");
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally { // 에러가 나도 실행되는 블럭
+            if(ps != null){
+                try{
+                    ps.close();
+                }catch (SQLException e){
+                }
+            }
+            if( conn != null){
+                try {
+                    conn.close();
+                }catch (SQLException e){
+                }
+            }
+        }
     }
 
     // deletaAll()만 Test하기에는 부족, getCount()추가해서 검증해주기
-    public int getCount() throws SQLException, ClassNotFoundException {
-        Connection conn = connectionMaker.makeConnection();
-        PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM users");
+    public int getCount() throws ClassNotFoundException {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
 
-        ResultSet rs = ps.executeQuery();
-        rs.next();
-        int count = rs.getInt(1);
-
-        rs.close();
-        ps.close();
-        conn.close();
-
-        return count;
+        try {
+            conn = connectionMaker.makeConnection();
+            ps = conn.prepareStatement("SELECT COUNT(*) FROM users");
+            rs = ps.executeQuery();
+            rs.next();
+            return rs.getInt(1);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally { // 에러가 나도 실행되는 블럭
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                }
+            }
+            if (ps != null) {
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                }
+            }
+        }
     }
     // 1. 데이터 넣는 add기능 메서드
     public void add(User user) throws ClassNotFoundException, SQLException {
@@ -62,8 +100,9 @@ public class UserDao {
         ps.setString(1, id);
         ResultSet rs = ps.executeQuery();
 
+        User user = null;
         if (rs.next()) {
-            User user = new User(rs.getString("id"), rs.getString("name"), rs.getString("password"));
+            user = new User(rs.getString("id"), rs.getString("name"), rs.getString("password"));
             return user;
         }
 
@@ -71,6 +110,7 @@ public class UserDao {
         ps.close();
         conn.close();
 
+        if(user == null) throw new EmptyResultDataAccessException(1);
         return null;
     }
 
