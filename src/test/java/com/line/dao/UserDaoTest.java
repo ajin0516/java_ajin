@@ -37,6 +37,7 @@ class UserDaoTest {
         assertEquals(1,userDao.getCount());
         userDao.deleteAll();
     }
+    // test는 실행 순서에 상관없이 독립적
     @Test
     void addAndSelect()  {
         User user1 = new User("5","sdjin","12223");

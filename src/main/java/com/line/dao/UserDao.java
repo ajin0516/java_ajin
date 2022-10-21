@@ -17,21 +17,32 @@ public class UserDao {
     public UserDao(ConnectionMaker connectionMaker) {
         this.connectionMaker = connectionMaker;
     }
-    // deleteAll() 실행 후 테이블에 남은 게 있는지 확인해야 함
 
-    // 1. 데이터 넣는 add기능 메서드
-    public void add(User user){
 
-        String sql = "INSERT INTO users(id, name, password) values (?, ?, ?)";
+    public void add(User user) throws SQLException {
+        AddStrategy addStrategy = new AddStrategy(user);
+        JdbcContextWithStatementStrategy(addStrategy);
+    }
+
+    // JdbcContextWithStatementStrategy으로 공통로직 분리
+    // WithStatementStrategy는 파라미터로 StatementStrategy를 받는 다는 것을 암시
+    //
+    public void deleteAll() throws SQLException {
+        StatementStrategy st = new DeleteAllStrategy();
+        JdbcContextWithStatementStrategy(st);
+    }
+
+    // JdbcContext는 executeUpdate()를 사용하는 모든 곳에 사용할 수 있음
+    // 왜냐하면 PreparedStatement만 바뀌기 떄문에 StatementStrategy의 구현체만 바꿔주면 긴 로직을 재용할 수 있음
+    public void JdbcContextWithStatementStrategy(StatementStrategy stmt) throws SQLException{
         Connection conn = null;
         PreparedStatement ps = null;
 
         try {
             conn = connectionMaker.makeConnection();
-            ps = conn.prepareStatement(sql);
-            ps.setString(1, user.getId());
-            ps.setString(2, user.getName());
-            ps.setString(3, user.getPassword());
+
+            ps = stmt.makePreparedStatement(conn);
+
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException();
@@ -39,22 +50,8 @@ public class UserDao {
             close(conn, ps);
         }
     }
-
-    public void deleteAll(){
-        String sql = "delete from users";
-        Connection conn = null;
-        PreparedStatement ps = null;
-
-        try {
-            conn = connectionMaker.makeConnection();
-            ps = conn.prepareStatement(sql);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            close(conn, ps);
-        }
-    }
+}
+    // deleteAll() 실행 후 테이블에 남은 게 있는지 확인해야 함
 
     // deletaAll()만 Test하기에는 부족, getCount()추가해서 검증해주기
     public int getCount() {
@@ -87,6 +84,7 @@ public class UserDao {
             ps = conn.prepareStatement(sql);
             ps.setString(1, id);
             rs = ps.executeQuery();
+
 
             if (rs.next()) {
                 User user = new User(rs.getString("id"),
