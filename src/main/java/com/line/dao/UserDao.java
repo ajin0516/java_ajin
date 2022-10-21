@@ -50,7 +50,7 @@ public class UserDao {
             close(conn, ps);
         }
     }
-}
+
     // deleteAll() 실행 후 테이블에 남은 게 있는지 확인해야 함
 
     // deletaAll()만 Test하기에는 부족, getCount()추가해서 검증해주기
