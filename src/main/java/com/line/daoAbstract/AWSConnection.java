@@ -7,7 +7,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Map;
 
-public class AWSConnection extends UserDaoAbstract {
+public class  AWSConnection extends UserDaoAbstract {
     @Override
     public Connection makeConnection() throws SQLException, ClassNotFoundException {
         Map<String, String> env = System.getenv();
